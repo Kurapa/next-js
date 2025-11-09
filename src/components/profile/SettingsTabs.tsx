@@ -21,7 +21,6 @@ export default function SettingsTabs({ activeTab, onTabChange }: SettingsTabsPro
     { id: 'farm', label: 'Farm Details', icon: <Building2 className="w-5 h-5" /> },
     { id: 'notifications', label: 'Notifications', icon: <Bell className="w-5 h-5" /> },
     { id: 'security', label: 'Security', icon: <Lock className="w-5 h-5" /> },
-    { id: 'preferences', label: 'Preferences', icon: <Globe className="w-5 h-5" /> },
   ];
 
   return (

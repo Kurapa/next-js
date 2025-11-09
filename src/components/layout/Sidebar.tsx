@@ -26,6 +26,7 @@ const navItems = [
   { name: "Drone Monitor", href: "/drone-monitor", icon: Plane },
   { name: "AI Assistant", href: "/chat", icon: MessageCircle },
   { name: "Profile", href: "/profile", icon: User },
+  { name: "Marketplace", href: "/marketplace", icon: ShoppingCart },
 ];
 
 export default function Sidebar() {

@@ -8,6 +8,8 @@ import CropCard from "@/components/crops/CropCard";
 import CropModal from "@/components/crops/CropModal";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { cropService, Crop } from "@/lib/db";
+import { activityService } from "@/lib/db";
+import { Timestamp } from 'firebase/firestore';
 
 export default function CropsPage() {
   const { user } = useAuth();
@@ -62,42 +64,81 @@ export default function CropsPage() {
   };
 
   const handleSaveCrop = async (cropData: Partial<Crop>) => {
-    try {
-      if (selectedCrop) {
-        // Update existing crop
-        await cropService.update(selectedCrop.id!, cropData);
-      } else {
-        // Create new crop
-        await cropService.create(cropData as Omit<Crop, "id" | "createdAt" | "updatedAt">);
-      }
-      await loadCrops();
-      setIsModalOpen(false);
-      setSelectedCrop(null);
-    } catch (error) {
-      console.error("Error saving crop:", error);
-    }
-  };
+        try {
+          if (selectedCrop) {
+            // Update existing crop
+            await cropService.update(selectedCrop.id!, cropData);
+            
+            // Log activity for update
+            await activityService.create({
+              userId: user!.uid, // Make sure you have user from useAuth()
+              type: 'other',
+              fieldName: cropData.fieldName || selectedCrop.fieldName || 'Unknown Field',
+              cropName: cropData.name || selectedCrop.name,
+              description: `Updated crop: ${cropData.name || selectedCrop.name}`,
+              date: Timestamp.now(),
+              notes: `Crop details were updated`,
+            });
+          } else {
+            // Create new crop
+            const newCrop = await cropService.create(cropData as Omit<Crop, "id" | "createdAt" | "updatedAt">);
+            
+            // Log activity for create
+            await activityService.create({
+              userId: user!.uid,
+              type: 'planting',
+              fieldName: cropData.fieldName || 'Unknown Field',
+              cropName: cropData.name,
+              description: `Added new crop: ${cropData.name}`,
+              date: Timestamp.now(),
+              notes: `New crop planted in the field`,
+            });
+          }
+          await loadCrops();
+          setIsModalOpen(false);
+          setSelectedCrop(null);
+        } catch (error) {
+          console.error("Error saving crop:", error);
+        }
+      };
 
-  const handleEditCrop = (crop: Crop) => {
-    setSelectedCrop(crop);
-    setIsModalOpen(true);
-  };
+      const handleEditCrop = (crop: Crop) => {
+        setSelectedCrop(crop);
+        setIsModalOpen(true);
+      };
 
-  const handleDeleteCrop = async (id: string) => {
-    if (confirm("Are you sure you want to delete this crop?")) {
-      try {
-        await cropService.delete(id);
-        await loadCrops();
-      } catch (error) {
-        console.error("Error deleting crop:", error);
-      }
-    }
-  };
+      const handleDeleteCrop = async (id: string) => {
+        if (confirm("Are you sure you want to delete this crop?")) {
+          try {
+            // Get crop details before deleting
+            const cropToDelete = crops.find(c => c.id === id);
+            
+            await cropService.delete(id);
+            
+            // Log activity for delete
+            if (cropToDelete) {
+              await activityService.create({
+                userId: user!.uid,
+                type: 'other',
+                fieldName: cropToDelete.fieldName || 'Unknown Field',
+                cropName: cropToDelete.name,
+                description: `Deleted crop: ${cropToDelete.name}`,
+                date: Timestamp.now(),
+                notes: `Crop removed from the field`,
+              });
+            }
+            
+            await loadCrops();
+          } catch (error) {
+            console.error("Error deleting crop:", error);
+          }
+        }
+      };
 
-  const handleAddNew = () => {
-    setSelectedCrop(null);
-    setIsModalOpen(true);
-  };
+      const handleAddNew = () => {
+        setSelectedCrop(null);
+        setIsModalOpen(true);
+      };
 
   const stats = {
     total: crops.length,

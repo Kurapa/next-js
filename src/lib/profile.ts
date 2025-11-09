@@ -10,8 +10,8 @@ export interface UserProfile {
   email: string;
   phoneNumber?: string;
   photoURL?: string;
-  role: 'farmer' | 'buyer' | 'advisor';
-  
+  role: 'farmer' | 'buyer' | 'advisor' | 'admin';
+  location?: string;
   // Farm Details
   farmDetails?: {
     farmName: string;

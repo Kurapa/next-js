@@ -8,6 +8,18 @@ import { Loader2, RefreshCw } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import WeatherCard from "@/components/dashboard/WeatherCard";
 import { cropService, taskService, activityService, getTimeBasedGreeting, getGreetingEmoji } from "@/lib/db";
+import { 
+  Activity, 
+  Droplets, 
+  Sprout, 
+  ShieldAlert, 
+  Package, 
+  Leaf, 
+  MapPin, 
+  Clock,
+  DollarSign 
+} from 'lucide-react';
+
 
 export default function Dashboard() {
   const router = useRouter();
@@ -158,7 +170,7 @@ export default function Dashboard() {
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
           {/* Recent Activity - Dynamic Data */}
-          <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 animate-fade-in">
+          {/* <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 animate-fade-in">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-800">Recent Activity</h2>
               <button
@@ -197,7 +209,112 @@ export default function Dashboard() {
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
+<div className="lg:col-span-2 bg-gradient-to-br from-white to-emerald-50/30 backdrop-blur-sm rounded-2xl p-6 border border-emerald-100/50 shadow-lg animate-fade-in">
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-md">
+          <Activity className="w-5 h-5 text-white" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-800">Recent Activity</h2>
+      </div>
+      <button
+        onClick={loadDashboardData}
+        className="p-2 hover:bg-emerald-100 rounded-xl transition-all hover:scale-110 active:scale-95 group"
+        title="Refresh"
+      >
+        <RefreshCw className="w-4 h-4 text-emerald-600 group-hover:rotate-180 transition-transform duration-500" />
+      </button>
+    </div>
+    
+    {loading ? (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="relative">
+          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+          <div className="absolute inset-0 w-8 h-8 border-2 border-emerald-200 rounded-full animate-ping"></div>
+        </div>
+        <p className="text-sm text-gray-500 mt-4">Loading activities...</p>
+      </div>
+    ) : recentActivities.length === 0 ? (
+      <div className="text-center py-12 px-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Activity className="w-8 h-8 text-emerald-400" />
+        </div>
+        <p className="text-gray-600 font-medium mb-2">No recent activities</p>
+        <p className="text-sm text-gray-400">Start by adding crops or tasks to see your activity here</p>
+      </div>
+    ) : (
+      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-emerald-200 scrollbar-track-transparent">
+        {recentActivities.map((activity, idx) => {
+          const activityIcons: Record<string, any> = {
+            watering: Droplets,
+            fertilizing: Sprout,
+            pesticide: ShieldAlert,
+            harvest: Package,
+            planting: Leaf,
+            other: Activity,
+          };
+          
+          const activityColors: Record<string, string> = {
+            watering: 'from-blue-500 to-cyan-600',
+            fertilizing: 'from-green-500 to-emerald-600',
+            pesticide: 'from-orange-500 to-red-600',
+            harvest: 'from-yellow-500 to-orange-600',
+            planting: 'from-emerald-500 to-green-600',
+            other: 'from-gray-500 to-slate-600',
+          };
+
+          const Icon = activityIcons[activity.type || 'other'] || Activity;
+          const colorGradient = activityColors[activity.type || 'other'];
+
+          return (
+            <div
+              key={activity.id || idx}
+              className="group relative flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:border-emerald-200 hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden"
+            >
+              {/* Hover gradient effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/0 via-emerald-50/50 to-emerald-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              {/* Icon */}
+              <div className={`relative z-10 p-3 bg-gradient-to-br ${colorGradient} rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300`}>
+                <Icon className="w-5 h-5 text-white" />
+              </div>
+              
+              {/* Content */}
+              <div className="flex-1 relative z-10 min-w-0">
+                <p className="font-semibold text-gray-800 group-hover:text-emerald-700 transition-colors truncate">
+                  {activity.type ? activity.type.charAt(0).toUpperCase() + activity.type.slice(1) : activity.description}
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="inline-flex items-center gap-1 text-sm text-gray-600 bg-gray-50 px-2 py-0.5 rounded-lg">
+                    <MapPin className="w-3 h-3" />
+                    {activity.fieldName || activity.cropName || 'Unknown'}
+                  </span>
+                  {activity.cost && (
+                    <span className="inline-flex items-center gap-1 text-sm text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg font-medium">
+                      <DollarSign className="w-3 h-3" />
+                      {activity.cost}
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Timestamp */}
+              <div className="relative z-10 flex flex-col items-end">
+                <span className="text-xs font-medium text-gray-400 group-hover:text-emerald-500 transition-colors flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {getTimeAgo(activity.createdAt)}
+                </span>
+              </div>
+              
+              {/* Subtle animation indicator */}
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-400 to-green-500 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"></div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+</div>
 
           {/* Quick Actions */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-100 animate-fade-in">
@@ -205,10 +322,10 @@ export default function Dashboard() {
             <div className="space-y-3">
               {[
                 { label: "Add New Crop", icon: "🌾", href: "/crops" },
-                { label: "Schedule Task", icon: "📅", href: "/tasks" },
                 { label: "Disease Check", icon: "🔬", href: "/disease-detection" },
-                { label: "Drone Monitor", icon: "🚁", href: "/drone-monitor" },
                 { label: "Marketplace", icon: "🛒", href: "/marketplace" },
+                { label: "Pesticides", icon: "🧴", href: "/marketplace/pesticides" },
+                { label: "Buy crops", icon: "🛒🌾", href: "/marketplace/buy" },
               ].map((action, idx) => (
                 <button
                   key={idx}

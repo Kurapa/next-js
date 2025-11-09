@@ -152,13 +152,6 @@ export default function ProfilePage() {
           {activeTab === 'security' && (
             <SecurityForm user={user} onUpdatePassword={handleUpdatePassword} />
           )}
-
-          {activeTab === 'preferences' && (
-            <div className="text-center py-12">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Preferences</h3>
-              <p className="text-gray-600">Language and theme preferences coming soon!</p>
-            </div>
-          )}
         </div>
       </div>
     </DashboardLayout>
